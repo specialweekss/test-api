@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.lyf.testapi.mapper.UserGameDataMapper">
+
+    <resultMap id="BaseResultMap" type="org.lyf.testapi.entity.UserGameData">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="player_level" property="playerLevel"/>
+        <result column="money" property="money"/>
+        <result column="click_reward_base" property="clickRewardBase"/>
+        <result column="click_multiplier" property="clickMultiplier"/>
+        <result column="upgrade_cost" property="upgradeCost"/>
+        <result column="assistants_data" property="assistantsData"/>
+        <result column="challenges_data" property="challengesData"/>
+        <result column="last_update_time" property="lastUpdateTime"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, player_level, money, click_reward_base, click_multiplier, upgrade_cost,
+        assistants_data, challenges_data, last_update_time, create_time
+    </sql>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_game_data
+        WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="org.lyf.testapi.entity.UserGameData" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_game_data
+        (user_id, player_level, money, click_reward_base, click_multiplier, upgrade_cost,
+         assistants_data, challenges_data, last_update_time, create_time)
+        VALUES
+        (#{userId}, #{playerLevel}, #{money}, #{clickRewardBase}, #{clickMultiplier}, #{upgradeCost},
+         #{assistantsData}, #{challengesData}, #{lastUpdateTime}, #{createTime})
+    </insert>
+
+    <update id="updateByUserId" parameterType="org.lyf.testapi.entity.UserGameData">
+        UPDATE user_game_data
+        SET player_level = #{playerLevel},
+            money = #{money},
+            click_reward_base = #{clickRewardBase},
+            click_multiplier = #{clickMultiplier},
+            upgrade_cost = #{upgradeCost},
+            assistants_data = #{assistantsData},
+            challenges_data = #{challengesData},
+            last_update_time = #{lastUpdateTime}
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>
+
