@@ -1,0 +1,65 @@
+#!/bin/bash
+
+APP_NAME="test-api"
+APP_JAR="test-api-0.0.1-SNAPSHOT.jar"
+APP_PID="test-api.pid"
+APP_LOG="logs/test-api.log"
+JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC"
+
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# 检查 JAR 文件是否存在
+if [ ! -f "$APP_JAR" ]; then
+    echo "Error: $APP_JAR not found in $SCRIPT_DIR"
+    exit 1
+fi
+
+# 检查是否已经运行
+if [ -f "$APP_PID" ]; then
+    PID=$(cat $APP_PID)
+    if ps -p $PID > /dev/null 2>&1; then
+        echo "$APP_NAME is already running with PID $PID"
+        exit 1
+    else
+        rm -f $APP_PID
+    fi
+fi
+
+# 创建日志目录（使用绝对路径）
+LOG_DIR="$SCRIPT_DIR/logs"
+mkdir -p "$LOG_DIR"
+
+# 设置微信环境变量（必须）
+# 请替换为实际的 AppID 和 AppSecret
+export WECHAT_APPID=your_appid_here
+export WECHAT_SECRET=your_secret_here
+
+# 检查微信环境变量
+if [ -z "$WECHAT_APPID" ] || [ -z "$WECHAT_SECRET" ]; then
+    echo "Error: WECHAT_APPID or WECHAT_SECRET environment variable is not set"
+    echo "Please set them before starting the application:"
+    echo "  export WECHAT_APPID=your_appid"
+    echo "  export WECHAT_SECRET=your_secret"
+    exit 1
+fi
+
+# 启动应用
+echo "Starting $APP_NAME..."
+echo "Log directory: $LOG_DIR"
+echo "WECHAT_APPID: ${WECHAT_APPID:0:10}..."  # 只显示前10个字符，保护隐私
+nohup java $JAVA_OPTS \
+    -DLOG_HOME="$LOG_DIR" \
+    -jar $APP_JAR \
+    --spring.config.location=classpath:/application.properties,file:./config/application-prod.properties \
+    --spring.profiles.active=prod \
+    > "$LOG_DIR/startup.log" 2>&1 &
+
+echo $! > $APP_PID
+echo "$APP_NAME started with PID $(cat $APP_PID)"
+echo "Log directory: $LOG_DIR"
+echo "Application log: $LOG_DIR/test-api.log"
+echo "Error log: $LOG_DIR/test-api-error.log"
+echo "Startup log: $LOG_DIR/startup.log"
+

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+APP_NAME="test-api"
+APP_PID="test-api.pid"
+
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
+if [ ! -f "$APP_PID" ]; then
+    echo "$APP_NAME is not running"
+    exit 1
+fi
+
+PID=$(cat $APP_PID)
+if ps -p $PID > /dev/null 2>&1; then
+    echo "Stopping $APP_NAME (PID: $PID)..."
+    kill $PID
+    
+    # 等待进程结束
+    for i in {1..30}; do
+        if ! ps -p $PID > /dev/null 2>&1; then
+            break
+        fi
+        sleep 1
+    done
+    
+    # 如果还在运行，强制杀死
+    if ps -p $PID > /dev/null 2>&1; then
+        echo "Force killing $APP_NAME..."
+        kill -9 $PID
+    fi
+    
+    rm -f $APP_PID
+    echo "$APP_NAME stopped"
+else
+    echo "$APP_NAME is not running"
+    rm -f $APP_PID
+fi
+

@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### 启动脚本（包含敏感信息，不提交到Git） ###
+start.sh
+stop.sh
+restart.sh
+*.bat
+*.cmd

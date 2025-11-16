@@ -296,18 +296,18 @@ Content-Type: application/json
 | 点击收益基础值不能为负数 | clickRewardBase 小于0 |
 | 点击收益倍率不能为负数 | clickMultiplier 小于0 |
 | 升级所需金币不能为负数 | upgradeCost 小于0 |
-| 助理数据必须包含4个助理 | assistants 数组长度不等于4 |
-| 助理ID必须在1-4之间 | assistant.id 超出范围 |
+| 助理数据不能为空 | assistants 数组为空或null |
+| 助理ID必须大于0 | assistant.id 为空或小于1 |
 | 助理等级必须在0-50之间 | assistant.level 超出范围 |
-| 挑战数据必须包含5个挑战 | challenges 数组长度不等于5 |
-| 挑战ID必须在1-5之间 | challenge.id 超出范围 |
+| 挑战数据不能为空 | challenges 数组为空或null |
+| 挑战ID必须大于0 | challenge.id 为空或小于1 |
 | 请求参数不能为空 | 请求体为空 |
 
 **注意事项**:
 - 如果用户不存在，会自动创建新记录
 - 如果用户已存在，会更新现有记录
 - 所有数值字段都需要进行合法性校验
-- assistants 数组必须包含4个元素，challenges 数组必须包含5个元素
+- assistants 和 challenges 数组可以为任意长度（但不能为空）
 
 ---
 
@@ -327,8 +327,8 @@ Content-Type: application/json
 
 | 字段 | 校验规则 |
 |------|----------|
-| 数组长度 | 必须为4 |
-| id | 必填，范围: 1-4 |
+| 数组长度 | 不能为空，可以为任意长度 |
+| id | 必填，范围: >= 1 |
 | unlocked | 必填，boolean类型 |
 | level | 必填，范围: 0-50 |
 
@@ -336,8 +336,8 @@ Content-Type: application/json
 
 | 字段 | 校验规则 |
 |------|----------|
-| 数组长度 | 必须为5 |
-| id | 必填，范围: 1-5 |
+| 数组长度 | 不能为空，可以为任意长度 |
+| id | 必填，范围: >= 1 |
 | completed | 必填，boolean类型 |
 
 ---

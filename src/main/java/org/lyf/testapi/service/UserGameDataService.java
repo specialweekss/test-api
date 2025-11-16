@@ -32,7 +32,7 @@ public class UserGameDataService {
      */
     public UserGameDataResponse getUserGameData(String userId) {
         try {
-            log.info("获取用户游戏数据, userId:{}", userId);
+            log.debug("获取用户游戏数据, userId:{}", userId);
             UserGameData userGameData = userGameDataMapper.selectByUserId(userId);
 
             // 如果用户不存在，创建并插入默认初始数据
@@ -53,6 +53,8 @@ public class UserGameDataService {
             playerInfo.setClickRewardBase(userGameData.getClickRewardBase());
             playerInfo.setClickMultiplier(userGameData.getClickMultiplier());
             playerInfo.setUpgradeCost(userGameData.getUpgradeCost());
+            // 如果字段不存在（旧数据），返回默认值 0
+            playerInfo.setTrainingCount(userGameData.getTrainingCount() != null ? userGameData.getTrainingCount() : 0);
             response.setPlayerInfo(playerInfo);
 
             // 解析助理数据JSON
@@ -95,7 +97,7 @@ public class UserGameDataService {
      */
     public SaveResult saveUserGameData(UserGameDataRequest request) {
         try {
-            log.info("保存用户游戏数据, userId:{}", request.getUserId());
+            log.debug("保存用户游戏数据, userId:{}", request.getUserId());
 
             // 数据校验
             String validateError = validateRequest(request);
@@ -106,6 +108,10 @@ public class UserGameDataService {
 
             // 转换为实体对象
             UserGameData userGameData = convertToEntity(request);
+            
+            // 调试日志：打印 trainingCount 值
+            log.info("保存用户游戏数据 - trainingCount: {}, userId:{}", 
+                userGameData.getTrainingCount(), request.getUserId());
 
             // 查询是否存在
             UserGameData existing = userGameDataMapper.selectByUserId(request.getUserId());
@@ -114,13 +120,13 @@ public class UserGameDataService {
                 userGameData.setCreateTime(LocalDateTime.now());
                 userGameData.setLastUpdateTime(LocalDateTime.now());
                 int result = userGameDataMapper.insert(userGameData);
-                log.info("插入用户游戏数据, userId:{}, result:{}", request.getUserId(), result);
+                log.debug("插入用户游戏数据, userId:{}, result:{}", request.getUserId(), result);
             } else {
                 // 更新现有数据
                 userGameData.setId(existing.getId());
                 userGameData.setLastUpdateTime(LocalDateTime.now());
                 int result = userGameDataMapper.updateByUserId(userGameData);
-                log.info("更新用户游戏数据, userId:{}, result:{}", request.getUserId(), result);
+                log.debug("更新用户游戏数据, userId:{}, result:{}", request.getUserId(), result);
             }
 
             return new SaveResult(true, LocalDateTime.now(), null);
@@ -158,25 +164,29 @@ public class UserGameDataService {
         if (playerInfo.getUpgradeCost() == null || playerInfo.getUpgradeCost() < 0) {
             return "升级所需金币不能为负数";
         }
+        // trainingCount 必须为非负整数（>= 0），如果未提供或为负数，使用默认值 0
+        if (playerInfo.getTrainingCount() != null && playerInfo.getTrainingCount() < 0) {
+            return "助理培训次数不能为负数";
+        }
 
-        if (request.getAssistants() == null || request.getAssistants().size() != 4) {
-            return "助理数据必须包含4个助理";
+        if (request.getAssistants() == null || request.getAssistants().isEmpty()) {
+            return "助理数据不能为空";
         }
         for (Assistant assistant : request.getAssistants()) {
-            if (assistant.getId() == null || assistant.getId() < 1 || assistant.getId() > 4) {
-                return "助理ID必须在1-4之间";
+            if (assistant.getId() == null || assistant.getId() < 1) {
+                return "助理ID必须大于0";
             }
             if (assistant.getLevel() == null || assistant.getLevel() < 0 || assistant.getLevel() > 50) {
                 return "助理等级必须在0-50之间";
             }
         }
 
-        if (request.getChallenges() == null || request.getChallenges().size() != 5) {
-            return "挑战数据必须包含5个挑战";
+        if (request.getChallenges() == null || request.getChallenges().isEmpty()) {
+            return "挑战数据不能为空";
         }
         for (Challenge challenge : request.getChallenges()) {
-            if (challenge.getId() == null || challenge.getId() < 1 || challenge.getId() > 5) {
-                return "挑战ID必须在1-5之间";
+            if (challenge.getId() == null || challenge.getId() < 1) {
+                return "挑战ID必须大于0";
             }
         }
 
@@ -196,6 +206,8 @@ public class UserGameDataService {
         userGameData.setClickRewardBase(playerInfo.getClickRewardBase());
         userGameData.setClickMultiplier(playerInfo.getClickMultiplier());
         userGameData.setUpgradeCost(playerInfo.getUpgradeCost());
+        // 如果请求中未包含 trainingCount 字段，使用默认值 0
+        userGameData.setTrainingCount(playerInfo.getTrainingCount() != null ? playerInfo.getTrainingCount() : 0);
 
         // 将助理数据转换为JSON
         userGameData.setAssistantsData(objectMapper.writeValueAsString(request.getAssistants()));
@@ -225,6 +237,7 @@ public class UserGameDataService {
             userGameData.setClickRewardBase(response.getPlayerInfo().getClickRewardBase());
             userGameData.setClickMultiplier(response.getPlayerInfo().getClickMultiplier());
             userGameData.setUpgradeCost(response.getPlayerInfo().getUpgradeCost());
+            userGameData.setTrainingCount(response.getPlayerInfo().getTrainingCount() != null ? response.getPlayerInfo().getTrainingCount() : 0);
 
             // 将助理和挑战数据转换为JSON
             userGameData.setAssistantsData(objectMapper.writeValueAsString(response.getAssistants()));
@@ -261,9 +274,10 @@ public class UserGameDataService {
         PlayerInfo playerInfo = new PlayerInfo();
         playerInfo.setPlayerLevel(1);
         playerInfo.setMoney(0L);
-        playerInfo.setClickRewardBase(100);
+        playerInfo.setClickRewardBase(100L);
         playerInfo.setClickMultiplier(1.0);
-        playerInfo.setUpgradeCost(10);
+        playerInfo.setUpgradeCost(10L);
+        playerInfo.setTrainingCount(0); // 默认培训次数为 0
         response.setPlayerInfo(playerInfo);
 
         // 默认助理数据

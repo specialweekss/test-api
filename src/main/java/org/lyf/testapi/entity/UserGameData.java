@@ -33,7 +33,7 @@ public class UserGameData {
     /**
      * 点击收益基础值
      */
-    private Integer clickRewardBase;
+    private Long clickRewardBase;
 
     /**
      * 点击收益倍率
@@ -43,7 +43,12 @@ public class UserGameData {
     /**
      * 升级所需金币
      */
-    private Integer upgradeCost;
+    private Long upgradeCost;
+
+    /**
+     * 助理培训次数（基础收益倍率 = 2^trainingCount）
+     */
+    private Integer trainingCount;
 
     /**
      * 助理数据JSON
