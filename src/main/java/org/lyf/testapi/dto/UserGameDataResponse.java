@@ -31,6 +31,11 @@ public class UserGameDataResponse {
     private List<Challenge> challenges;
 
     /**
+     * 用户设置（JSON格式，包含音效、背景音乐等设置项）
+     */
+    private Settings settings;
+
+    /**
      * 最后更新时间
      */
     private LocalDateTime lastUpdateTime;

@@ -61,6 +61,11 @@ public class UserGameData {
     private String challengesData;
 
     /**
+     * 用户设置JSON（包含音效、背景音乐等设置项）
+     */
+    private String settingsData;
+
+    /**
      * 最后更新时间
      */
     private LocalDateTime lastUpdateTime;

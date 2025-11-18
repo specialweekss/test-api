@@ -81,6 +81,30 @@ public class UserGameDataService {
                 response.setChallenges(createDefaultChallenges());
             }
 
+            // 解析设置数据JSON
+            try {
+                if (userGameData.getSettingsData() != null && !userGameData.getSettingsData().trim().isEmpty()) {
+                    Settings settings = objectMapper.readValue(
+                            userGameData.getSettingsData(),
+                            Settings.class
+                    );
+                    // 如果设置项缺失，使用默认值
+                    if (settings.getSoundEnabled() == null) {
+                        settings.setSoundEnabled(true);
+                    }
+                    if (settings.getMusicEnabled() == null) {
+                        settings.setMusicEnabled(true);
+                    }
+                    response.setSettings(settings);
+                } else {
+                    // 如果数据库中没有设置数据，使用默认设置
+                    response.setSettings(Settings.createDefault());
+                }
+            } catch (Exception e) {
+                log.error("解析设置数据JSON失败, userId:{}", userId, e);
+                response.setSettings(Settings.createDefault());
+            }
+
             return response;
         } catch (Exception e) {
             log.error("获取用户游戏数据异常, userId:{}", userId, e);
@@ -215,6 +239,22 @@ public class UserGameDataService {
         // 将挑战数据转换为JSON
         userGameData.setChallengesData(objectMapper.writeValueAsString(request.getChallenges()));
 
+        // 将设置数据转换为JSON
+        Settings settings = request.getSettings();
+        if (settings == null) {
+            // 如果请求中未包含 settings 字段，使用默认设置
+            settings = Settings.createDefault();
+        } else {
+            // 如果设置项缺失，使用默认值
+            if (settings.getSoundEnabled() == null) {
+                settings.setSoundEnabled(true);
+            }
+            if (settings.getMusicEnabled() == null) {
+                settings.setMusicEnabled(true);
+            }
+        }
+        userGameData.setSettingsData(objectMapper.writeValueAsString(settings));
+
         return userGameData;
     }
 
@@ -242,6 +282,8 @@ public class UserGameDataService {
             // 将助理和挑战数据转换为JSON
             userGameData.setAssistantsData(objectMapper.writeValueAsString(response.getAssistants()));
             userGameData.setChallengesData(objectMapper.writeValueAsString(response.getChallenges()));
+            // 将设置数据转换为JSON
+            userGameData.setSettingsData(objectMapper.writeValueAsString(response.getSettings()));
 
             LocalDateTime now = LocalDateTime.now();
             userGameData.setCreateTime(now);
@@ -285,6 +327,9 @@ public class UserGameDataService {
 
         // 默认挑战数据
         response.setChallenges(createDefaultChallenges());
+
+        // 默认设置数据
+        response.setSettings(Settings.createDefault());
 
         return response;
     }
